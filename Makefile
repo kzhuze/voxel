@@ -1,5 +1,5 @@
-CC = gcc
-CXX = g++
+CC = clang
+CXX = clang++
 
 EXE = app
 
@@ -10,11 +10,17 @@ INC_DIR = include
 SRC = $(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/*.cpp)
 OBJ = $(subst $(SRC_DIR), $(BUILD_DIR), $(addsuffix .o, $(basename $(SRC))))
 
-CPPFLAGS += -I$(INC_DIR) # preprocessor flags
-CFLAGS += # C compiler flags
-CXXFLAGS += -std=c++11 # C++ compiler flags
-LDFLAGS += # linker flags
-LDLIBS += -framework OpenGL -lglfw  # libraries
+CPPFLAGS += -I$(INC_DIR)    # preprocessor flags
+CFLAGS +=                   # C compiler flags
+CXXFLAGS += -std=c++11      # C++ compiler flags
+LDFLAGS +=                  # linker flags
+
+OS = $(shell uname)
+ifeq ($(OS), Darwin)
+LDLIBS += -framework OpenGL -lglfw # OSX libraries 
+else
+LDLIBS += -ldl -lGL -lglfw # Linux libraries
+endif
 
 all: $(EXE)
 $(EXE): $(OBJ)
