@@ -54,12 +54,17 @@ int main() {
                 model = glm::translate(model, glm::vec3((float)2*i, (float)2*j, 0.0));
                 model = glm::scale(model, glm::vec3(0.50, 0.50, 0.50));
                 glm::mat4 view = glm::mat4(1.0);
-                view = glm::translate(view, glm::vec3(0.0, -2.0, -30.0));
                 int state = glfwGetKey(window, GLFW_KEY_RIGHT);
+                if (state == GLFW_PRESS) {degrees += 0.001;}
+                state = glfwGetKey(window, GLFW_KEY_LEFT);
+                if (state == GLFW_PRESS) {degrees -= 0.001;}
+                view = glm::rotate(view, glm::radians(degrees), glm::vec3(0.0, 1.0, 0.0));
+                view = glm::translate(view, glm::vec3(0.0, -2.0, -30.0));
+                /*int state = glfwGetKey(window, GLFW_KEY_RIGHT);
                 if (state == GLFW_PRESS) {degrees += 0.01;}
                 state = glfwGetKey(window, GLFW_KEY_LEFT);
                 if (state == GLFW_PRESS) {degrees -= 0.01;}
-                view = glm::rotate(view, glm::radians(degrees), glm::vec3(0.0, 1.0, 0.0));
+                view = glm::rotate(view, glm::radians(degrees), glm::vec3(0.0, 1.0, 0.0));*/
                 glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)WIDTH/(float)HEIGHT, 0.1f, 100.0f);
                 shader.use();
                 shader.setMat4("model", model);
