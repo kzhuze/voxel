@@ -76,6 +76,5 @@ int main() {
     Matrix mat1(3,3,2);
     mat1(2,1) = 1;
     std::cout << mat1;
-    //std::cout << 3 * mat1 << mat1 + mat1 << mat1 * mat1;
     return 0;
 };
