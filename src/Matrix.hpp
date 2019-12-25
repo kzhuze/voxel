@@ -15,7 +15,7 @@ class Matrix {
             cols = _cols;
             values = new float[rows * cols]();
 		}
-		Matrix(int n, float val) : Matrix(n, n) {
+        Matrix(int n, float val) : Matrix(n, n) {
 			int c;
 			for (int r=0; r<rows; r++) {
 				c = r;
@@ -28,10 +28,10 @@ class Matrix {
         ~Matrix() {
             delete [] values;
         }
-		int rows() const {
+        int rows() const {
 			return rows;
 		}
-		int cols() const {
+        int cols() const {
 			return cols;
 		}
         float& operator()(int r, int c) {
