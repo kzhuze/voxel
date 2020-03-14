@@ -22,6 +22,7 @@ namespace mtx {
             vector(double, ...);
             T& operator[](unsigned);
             vector unit();
+            vector operator+(vector&);
     };
 
     template<typename T, int N>
@@ -55,9 +56,17 @@ namespace mtx {
         mag=sqrt(mag);
         vector<T, N> result;
         for (int i=0; i<N; i++) {
-            result.m_values[i]=m_values[i]/mag;
+            result[i]=(*this)[i]/mag;
         }
         return result;
+    }
+    template<typename T, int N>
+    vector<T, N> vector<T,N>::operator+(vector& rhs) {
+        vector<T, N> vec;
+        for (int i=0; i<N; i++) {
+            vec[i]=(*this)[i]+rhs[i];
+        }
+        return vec;
     }
 
     // matrix

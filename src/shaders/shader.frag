@@ -1,10 +1,15 @@
 #version 330 core
-in vec2 texcoord;
+in vec3 texcoord;
 
-uniform sampler2D my_texture;
+uniform sampler2D top_texture;
+uniform sampler2D side_texture;
 
 out vec4 FragColor;
 
 void main() {
-    FragColor = texture(my_texture, texcoord);
+    if (texcoord.z==1) {
+        FragColor = texture(top_texture, texcoord.xy);
+    } else {
+        FragColor = texture(side_texture, texcoord.xy);
+    }
 }

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <glm/glm/glm.hpp>
+#include <glm/glm/gtc/type_ptr.hpp>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -52,6 +54,9 @@ class Shader {
         }
         void setMat4(const std::string &name, mtx::mat4 matrix) const {
             glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, matrix.value_ptr());
+        }
+        void setMat4(const std::string &name, glm::mat4 matrix) const {
+            glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(matrix));
         }
 
     private:

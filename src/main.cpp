@@ -1,14 +1,30 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include <iostream>
 #include <cmath>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm/glm.hpp>
+#include <glm/glm/gtc/matrix_transform.hpp>
 #include "headers/Shader.hpp"
 #include "headers/Matrix.hpp"
 #include "headers/stb_image.h"
 #include "headers/Chunk.hpp"
+#include "headers/Camera.hpp"
 
 const unsigned int WIDTH = 512;
 const unsigned int HEIGHT = 512;
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void processInput(GLFWwindow *window);
+
+Camera camera(glm::vec3(0.0f, 8.0f, 0.0f));
+float lastX = WIDTH / 2.0f;
+float lastY = HEIGHT / 2.0f;
+bool firstMouse = true;
+
+// timing
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
 
 int main() {
     // initialization
@@ -28,64 +44,88 @@ int main() {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
     Shader shader("src/shaders/shader.vert", "src/shaders/shader.frag");
     
-    ChunkManager<16,16,16> chunkmanager(
-            10, 4, // number of chunks, chunks on x axis
-            0, 0, -30, // coords of world start
-            "src/resources/grass.png"); // texture for blocks
+    ChunkManager<16,16,16> chunkmanager("src/resources/grass.png", "src/resources/dirt.png"); // texture for blocks
 
     mtx::fmt = mtx::COL;
     glEnable(GL_DEPTH_TEST);
-    float degrees = 0.0;
-    float x = 0;
-    float y = 0;
-    float z = -30;
+
+    shader.use();
+    shader.setInt("top_texture", 0);
+    shader.setInt("side_texture", 1);
 
     while (!glfwWindowShouldClose(window)) {
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        processInput(window);
+
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        mtx::mat4 view;
-        mtx::identity(view);
-        int state = glfwGetKey(window, GLFW_KEY_RIGHT);
-        if (state == GLFW_PRESS) {degrees += 0.2;}
-        state = glfwGetKey(window, GLFW_KEY_LEFT);
-        if (state == GLFW_PRESS) {degrees -= 0.2;}
-        state = glfwGetKey(window, GLFW_KEY_UP);
-        if (state == GLFW_PRESS) {
-            float step = 0.1;
-            float dx = step*cos(3.14159*(degrees+90)/180.0);
-            float dz = step*sin(3.14159*(degrees+90)/180.0);
-            x += dx;
-            z += dz;
-        }
-        state = glfwGetKey(window, GLFW_KEY_S);
-        if (state == GLFW_PRESS) {
-            float step = 0.1;
-            y += step;
-        }
-        state = glfwGetKey(window, GLFW_KEY_W);
-        if (state == GLFW_PRESS) {
-            float step = 0.1;
-            y -= step;
-        }
+        glm::mat4 view = camera.GetViewMatrix(); 
+        mtx::mat4 projection = mtx::perspective(mtx::radians(camera.Zoom), (float)WIDTH/(float)HEIGHT, 0.1f, 100.0f);
 
-        mtx::translate(view, mtx::vec3(x, y, z));
-        mtx::rotate(view, mtx::radians(degrees), mtx::vec3(0.0, 1.0, 0.0));
+        chunkmanager.generateChunk(camera.Position[0], camera.Position[2]);
         
-        mtx::mat4 projection = mtx::perspective(mtx::radians(45.0f), (float)HEIGHT/(float)WIDTH, 0.1f, 100.0f);
-
         shader.use();
         shader.setMat4("view", view); 
         shader.setMat4("projection", projection);
         
-        chunkmanager.render();
+        chunkmanager.render(camera.Position[0], camera.Position[2], 3);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    
     glfwTerminate();
     return 0;
+}
+
+void processInput(GLFWwindow *window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera.ProcessKeyboard(UP, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        camera.ProcessKeyboard(DOWN, deltaTime);
+}
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    camera.ProcessMouseScroll(yoffset);
 }
