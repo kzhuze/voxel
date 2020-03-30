@@ -196,12 +196,12 @@ namespace mtx {
                   u[2],       0.0, -u[0]+0.0, 0.0, 
              -u[1]+0.0,      u[0],       0.0, 0.0,
                    0.0,       0.0,       0.0, 0.0);
-        cross=sin(t)*cross;
+        cross=(float)sin(t)*cross;
         mat4 outer(u[0]*u[0], u[0]*u[1], u[0]*u[2], 0.0,
                    u[1]*u[0], u[1]*u[1], u[1]*u[2], 0.0,
                    u[2]*u[0], u[2]*u[1], u[2]*u[2], 0.0,
                          0.0,       0.0,       0.0, 0.0);
-        outer=(1-cos(t))*outer;
+        outer=(float)(1-cos(t))*outer;
         mat4 rotate = I+cross+outer;
         mat=rotate*mat;
     }
